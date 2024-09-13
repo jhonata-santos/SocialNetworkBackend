@@ -49,7 +49,7 @@ Microserviço/
 1. Instale e configure o MySQL.
 2. Crie um banco de dados com o seguinte comando:
 ```
-CREATE DATABASE SocialNetworkDb;
+CREATE DATABASE SocialNetwork;
 ```
 3. Execute o script SQL localizado em Infrastructure/Data/Scripts para criar as tabelas necessárias.
 4. Configure a connection string no arquivo appsettings.json da camada API:
