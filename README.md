@@ -1,7 +1,7 @@
 # SocialNetwork API
 
 ## Descrição
-A **SocialNetwork API** é um microserviço construído em .NET 8, seguindo os princípios da arquitetura de **DDD (Domain-Driven Design)**. O projeto utiliza **Dapper** para consultas de banco de dados MySQL, **AutoMapper** para mapeamento de entidades e DTOs, e **injeção de dependência** configurada de forma modular através da camada **CrossCutting**. 
+A **SocialNetwork API** é um microserviço construído em .NET 8, seguindo os princípios da arquitetura de **Microserviços** com designe de software **DDD (Domain-Driven Design)**. O projeto utiliza **Dapper** para consultas de banco de dados MySQL, **AutoMapper** para mapeamento de entidades e DTOs, e **injeção de dependência** configurada de forma modular através da camada **CrossCutting**. 
 
 ### Tecnologias principais:
 - .NET 8
@@ -11,8 +11,8 @@ A **SocialNetwork API** é um microserviço construído em .NET 8, seguindo os p
 - AutoMapper (para mapeamento de objetos)
 - Swagger (para documentação da API)
 - Injeção de Dependência
-- Arquitetura DDD (Domain-Driven Design)
-- Microserviços
+- DDD (Domain-Driven Design) padrão de design de software
+- Arquitetura de Microserviços
 
 ## Estrutura do Projeto
 A organização do projeto segue uma abordagem modular, separando responsabilidades em camadas distintas:
@@ -112,6 +112,15 @@ A API possui endpoints para gerenciar usuários. Abaixo estão os principais end
 ```
 
 ## Arquitetura
+A API foi desenvolvida seguindo a **arquitetura de microserviços**. Cada serviço é responsável por uma função específica dentro do sistema, o que facilita o desenvolvimento e a escalabilidade, além de permitir a independência entre os serviços. 
+
+### Microserviços
+Características da Arquitetura de Microserviços:
+
+- **Descentralização**: Cada serviço funciona de forma independente, podendo ser implantado, escalado e mantido de forma autônoma.
+- **Desacoplamento**: Separação clara entre lógica de negócio, aplicação e infraestrutura, permitindo que alterações em uma parte do sistema não afetem as demais.
+- **Escalabilidade**: Serviços podem ser escalados de forma independente com base na necessidade de carga ou performance.
+- **Comunicação via API**: A comunicação entre os microserviços é feita utilizando APIs REST, possibilitando a integração com outras partes do sistema ou com serviços externos.
 
 ### Domain-Driven Design (DDD)
 O projeto segue os princípios de Domain-Driven Design, separando as responsabilidades em camadas claras:
