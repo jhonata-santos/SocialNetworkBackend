@@ -1,0 +1,15 @@
+*.vs
+*.vscode
+*.log
+*.suo
+*.tmp
+*.pdb
+*.cache
+*.obj
+*.dll
+*.DS_Store
+*.exe
+*.Up2Date
+*.idea
+/bin
+/obj
