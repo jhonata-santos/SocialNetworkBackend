@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace SocialNetwork.Users.Domain.Entities;
 
@@ -15,6 +16,9 @@ public class User
     [Required]
     [StringLength(11)]
     public required string CPF { get; set; }
+    [Required]
+    [PasswordPropertyText]
+    public required string Password { get; set; }
     [Required]
     [EmailAddress]
     public required string Email { get; set; }

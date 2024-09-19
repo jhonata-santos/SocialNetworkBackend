@@ -20,14 +20,23 @@ public class UserRepository : IUserRepository
             throw new ArgumentException("O ID deve ser um número positivo.", nameof(id));
 
 
-        string sql = $"SELECT * FROM USERS WHERE ID = {id}";
+        string sql = $"SELECT * FROM Users WHERE ID = {id}";
         var result = await _connection.QuerySingleOrDefaultAsync<User>(sql);
         return result;
     }
 
     public async Task<IEnumerable<User>> GetAllUsersAsync()
     {
-        string sql = "SELECT * FROM USERS";
+        string sql = "SELECT * FROM Users";
         return await _connection.QueryAsync<User>(sql);
+    }
+
+    public async Task<int> CreateAsync(User user)
+    {
+        string sql = $"INSERT INTO Users (NAME, DATE_OF_BIRTH, CPF, EMAIL, PASSWORD, CREATE_AT, UPDATE_AT) " +
+                     $"VALUES ('{user.Name}', '{user.DateOfBirth:yyyy-MM-dd HH:mm:ss}', '{user.CPF}', '{user.Email}', '{user.Password}', '{user.CreateAt:yyyy-MM-dd HH:mm:ss}', '{user.UpdateAt:yyyy-MM-dd HH:mm:ss}');" +
+                     $"SELECT LAST_INSERT_ID();";
+        int userId = await _connection.ExecuteScalarAsync<int>(sql);
+        return userId;
     }
 }

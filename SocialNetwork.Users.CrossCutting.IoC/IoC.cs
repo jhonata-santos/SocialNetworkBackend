@@ -10,6 +10,7 @@ public static class IoC
     {
         ApplicationModule.Register(services, configuration);
         InfrastructureModule.Register(services, configuration);
+        SecurityModule.Register(services, configuration);
         return services;
     }
 }

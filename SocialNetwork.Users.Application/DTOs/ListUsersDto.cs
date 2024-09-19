@@ -1,4 +1,6 @@
-﻿namespace SocialNetwork.Users.Application.DTOs;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace SocialNetwork.Users.Application.DTOs;
 
 public class ListUsersDto
 {
@@ -6,5 +8,6 @@ public class ListUsersDto
     public required string Name { get; set; }
     public required DateTime DateOfBirth { get; set; }
     public required string CPF { get; set; }
+    [EmailAddress]
     public required string Email { get; set; }
 }

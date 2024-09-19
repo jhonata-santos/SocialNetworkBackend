@@ -8,13 +8,15 @@ namespace SocialNetwork.Users.Application.Services;
 
 public class UserService : IUserService
 {
-    private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
+    private readonly IUserRepository _userRepository;
+    private readonly IPasswordHasher _passwordHasher;
 
-    public UserService(IUserRepository userRepository, IMapper mapper)
+    public UserService(IMapper mapper, IUserRepository userRepository, IPasswordHasher passwordHasher)
     {
-        _userRepository = userRepository;
         _mapper = mapper;
+        _userRepository = userRepository;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<UserDto> GeUserByIdAsync(int id)
@@ -29,5 +31,13 @@ public class UserService : IUserService
         var users = await _userRepository.GetAllUsersAsync();
         var userDto = _mapper.Map<IEnumerable<ListUsersDto>>(users);
         return userDto;
+    }
+
+    public async Task<int> CreateUserAsync(CreateUserDto userDto)
+    {
+        userDto.Password = _passwordHasher.HashPassword(userDto.Password);
+        var user = _mapper.Map<User>(userDto);
+        var result = await _userRepository.CreateAsync(user);
+        return result;
     }
 }
