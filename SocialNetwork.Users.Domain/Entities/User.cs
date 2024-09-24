@@ -22,6 +22,7 @@ public class User
     [Required]
     [EmailAddress]
     public required string Email { get; set; }
+    public int Available { get; set; }
     public DateTime CreateAt { get; set; }
     public DateTime UpdateAt { get; set; }
 }

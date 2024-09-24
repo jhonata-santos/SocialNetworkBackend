@@ -9,6 +9,7 @@ public class UserDto
     public required string CPF { get; set; }
     [EmailAddress]
     public required string Email { get; set; }
+    public int Available { get; set; }
     public DateTime CreateAt { get; set; }
     public DateTime UpdateAt { get; set; }
 }

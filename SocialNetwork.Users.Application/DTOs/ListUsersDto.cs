@@ -10,4 +10,5 @@ public class ListUsersDto
     public required string CPF { get; set; }
     [EmailAddress]
     public required string Email { get; set; }
+    public int Available { get; set; }
 }

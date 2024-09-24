@@ -27,16 +27,25 @@ public class UserRepository : IUserRepository
 
     public async Task<IEnumerable<User>> GetAllUsersAsync()
     {
-        string sql = "SELECT * FROM Users";
+        string sql = "SELECT * FROM Users WHERE Available = 1";
         return await _connection.QueryAsync<User>(sql);
     }
 
     public async Task<int> CreateAsync(User user)
     {
-        string sql = $"INSERT INTO Users (NAME, DATE_OF_BIRTH, CPF, EMAIL, PASSWORD, CREATE_AT, UPDATE_AT) " +
-                     $"VALUES ('{user.Name}', '{user.DateOfBirth:yyyy-MM-dd HH:mm:ss}', '{user.CPF}', '{user.Email}', '{user.Password}', '{user.CreateAt:yyyy-MM-dd HH:mm:ss}', '{user.UpdateAt:yyyy-MM-dd HH:mm:ss}');" +
+        string sql = $"INSERT INTO Users (NAME, DATE_OF_BIRTH, CPF, EMAIL, PASSWORD, CREATE_AT, UPDATE_AT, AVAILABLE) " +
+                     $"VALUES ('{user.Name}', '{user.DateOfBirth:yyyy-MM-dd HH:mm:ss}', '{user.CPF}', '{user.Email}', '{user.Password}', '{DateTime.Now:yyyy-MM-dd HH:mm:ss}', '{DateTime.Now:yyyy-MM-dd HH:mm:ss}', 1);" +
                      $"SELECT LAST_INSERT_ID();";
         int userId = await _connection.ExecuteScalarAsync<int>(sql);
         return userId;
+    }
+
+    public async Task<bool> UpdateAsync(User user)
+    {
+        string sql = $"UPDATE Users " +
+                     $"SET AVAILABLE = {user.Available}, UPDATE_AT = '{user.UpdateAt:yyyy-MM-dd HH:mm:ss}' " +
+                     $"WHERE Id = {user.Id}";
+        int rowsAffected = await _connection.ExecuteAsync(sql);
+        return rowsAffected > 0;
     }
 }

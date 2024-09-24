@@ -11,5 +11,5 @@
 *.exe
 *.Up2Date
 *.idea
-/bin
-/obj
+*/bin
+*/obj

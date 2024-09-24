@@ -3,6 +3,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using SocialNetwork.Users.Application.DTOs;
 using SocialNetwork.Users.Application.Interfaces;
 using MySql.Data.MySqlClient;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace SocialNetwork.Users.Api.Controllers;
 
@@ -37,7 +38,10 @@ public class UserController : ControllerBase
         {
             var userId = await _userService.CreateUserAsync(userDto);
             if (userId == 0)
+            {
+                _logger.LogWarning("User could not be created.");
                 return StatusCode(500, "User could not be created.");
+            }
 
             return CreatedAtAction(nameof(GetUserById), new { id = userId }, userDto);
         }
@@ -76,6 +80,139 @@ public class UserController : ControllerBase
         }
     }
 
+    [HttpPatch("User/Status")]
+    [SwaggerOperation(Summary = "Activate or Deactivate User")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> ChangeUserStatus([FromBody] UserStatusDto user)
+    {
+        if (user.Id <= 0)
+        {
+            _logger.LogWarning("Invalid user ID, value must be greater than zero: {Id}", user.Id);
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Invalid User ID",
+                Detail = $"Invalid user ID, value must be greater than zero: {user.Id}.",
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        try
+        {
+            var result = await _userService.ChangeUserStatusAsync(user);
+            if (!result)
+            {
+                _logger.LogWarning($"User with ID {user.Id} not found.");
+                return NotFound(new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Not Found",
+                    Detail = $"User with ID {user.Id} not found.",
+                    Instance = HttpContext.Request.Path
+                });
+            }
+
+            return Ok($"User ID: {user.Id} updated successfully.");
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Error fetching user with ID {Id}: {Message}", user.Id, ex.Message);
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Invalid request",
+                Detail = ex.Message,
+                Instance = HttpContext.Request.Path
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "User is already deactivated.");
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Invalid operation",
+                Detail = ex.Message,
+                Instance = HttpContext.Request.Path
+            });
+        }
+        catch (MySqlException ex)
+        {
+            _logger.LogError(ex, "Database error fetching user with ID {Id}: {Message}", user.Id, ex.Message);
+            return StatusCode(500, new ProblemDetails
+            {
+                Status = StatusCodes.Status500InternalServerError,
+                Title = "Database Error",
+                Detail = ex.Message,
+                Instance = HttpContext.Request.Path
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error fetching user with ID {Id}: {Message}", user.Id, ex.Message);
+            return StatusCode(500, new ProblemDetails
+            {
+                Status = StatusCodes.Status500InternalServerError,
+                Title = "Unexpected Error",
+                Detail = ex.Message,
+                Instance = HttpContext.Request.Path
+            });
+        }
+    }
+
+    [HttpPatch("User/Password")]
+    [SwaggerOperation(Summary = "Update Password User")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> UpdatePasswordUser([FromBody] UserPasswordDto user)
+    {
+        if (user.Id <= 0)
+        {
+            _logger.LogWarning("Invalid user ID, value must be greater than zero: {Id}", user.Id);
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Invalid User ID",
+                Detail = $"Invalid user ID, value must be greater than zero: {user.Id}.",
+                Instance = HttpContext.Request.Path
+            });
+        }
+
+        try
+        {
+            var result = await _userService.UpdatePasswordUser(user);
+            if (!result)
+            {
+                _logger.LogWarning($"User with ID {user.Id} not found.");
+                return NotFound(new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Not Found",
+                    Detail = $"User with ID {user.Id} not found.",
+                    Instance = HttpContext.Request.Path
+                });
+            }
+
+            return Ok($"User ID: {user.Id} updated successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error fetching user with ID {Id}: {Message}", user.Id, ex.Message);
+            return StatusCode(500, new ProblemDetails
+            {
+                Status = StatusCodes.Status500InternalServerError,
+                Title = "Unexpected Error",
+                Detail = ex.Message,
+                Instance = HttpContext.Request.Path
+            });
+        }
+    }
+
     [HttpGet("User/{id}")]
     [SwaggerOperation(Summary = "Get Specific User")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -86,12 +223,12 @@ public class UserController : ControllerBase
     {
         if (id <= 0)
         {
-            _logger.LogWarning("Invalid user ID: {Id}", id);
+            _logger.LogWarning("Invalid user ID, value must be greater than zero: {Id}", id);
             return BadRequest(new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
                 Title = "Invalid User ID",
-                Detail = "The provided user ID is invalid.",
+                Detail = $"Invalid user ID, value must be greater than zero: {id}.",
                 Instance = HttpContext.Request.Path
             });
         }
@@ -101,8 +238,14 @@ public class UserController : ControllerBase
             UserDto userDto = await _userService.GeUserByIdAsync(id);
             if (userDto == null)
             {
-                _logger.LogInformation("User with ID {Id} not found", id);
-                return NotFound($"User with ID {id} not found.");
+                _logger.LogWarning("User with ID {Id} not found", id);
+                return NotFound(new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Not Found",
+                    Detail = $"User with ID {id} not found.",
+                    Instance = HttpContext.Request.Path
+                });
             }
 
             return Ok(userDto);
@@ -154,7 +297,7 @@ public class UserController : ControllerBase
             IEnumerable<ListUsersDto> usersDto = await _userService.GetAllUsersAsync();
             if (usersDto == null || !usersDto.Any())
             {
-                _logger.LogInformation("No users found in the database.");
+                _logger.LogWarning("No users found in the database.");
                 return NotFound("No users are registered in the system.");
             }
 
@@ -184,35 +327,21 @@ public class UserController : ControllerBase
         }
     }
 
-    //[HttpPut("{id}")]
-    //[SwaggerOperation(Summary = "Update User")]
-    //[ProducesResponseType(StatusCodes.Status204NoContent)]
-    //public IActionResult UpdateUserId(int id, [FromBody] UpdateUserDto userDto)
-    //{
-    //    return NoContent();
-    //}
+    // -----------------------------------------------------------------------------------------------
 
-    //[HttpPatch("{id}")]
-    //[SwaggerOperation(Summary = "Create Partial User")]
-    //[ProducesResponseType(StatusCodes.Status204NoContent)]
-    //public IActionResult UpdatePartialUserId(int id, [FromBody] JsonPatchDocument<UpdateUserDto> userDto)
-    //{
-    //    return NoContent();
-    //}
+    [HttpPut("User/{id}/Profile")]
+    [SwaggerOperation(Summary = "Update User")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public IActionResult UpdateUserId(int id, [FromBody] UpdateUserDto userDto)
+    {
+        return NoContent();
+    }
 
-    //[HttpDelete("{id}")]
-    //[SwaggerOperation(Summary = "Delete Specific User")]
-    //[ProducesResponseType(StatusCodes.Status204NoContent)]
-    //public IActionResult DeleteUserId(int id)
-    //{
-    //    return NoContent();
-    //}
-
-    //[HttpDelete]
-    //[SwaggerOperation(Summary = "Delete All User")]
-    //[ProducesResponseType(StatusCodes.Status204NoContent)]
-    //public IActionResult DeleteAllUsers()
-    //{
-    //    return NoContent();
-    //}
+    [HttpPatch("User/{id}/Profile")]
+    [SwaggerOperation(Summary = "Update Partial User")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public IActionResult UpdatePartialUserId(int id, [FromBody] JsonPatchDocument<UpdateUserDto> userDto)
+    {
+        return NoContent();
+    }
 }

@@ -12,5 +12,6 @@ public class UpdateUserDto
     public required string Email { get; set; }
     [PasswordPropertyText]
     public required string Password { get; set; }
+    public int Available { get; set; }
     public DateTime UpdateAt { get; set; } = DateTime.Now;
 }
